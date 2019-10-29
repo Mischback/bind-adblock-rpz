@@ -14,11 +14,11 @@ import yaml
 # This logger will get replaced by a user provided logging configuration, that
 # is specified in a configuration file. Alternatively, logging is disabled by
 # attaching a NullLogger handler.
-logger = logging.getLogger('rpz-updater')
+logger = logging.getLogger(__name__)
 # logger.setLevel(logging.WARNING)
 logger.setLevel(logging.DEBUG)
-syslogh = SysLogHandler(address='/dev/log')
 syslogf = logging.Formatter(fmt='rpz-updater.py: %(levelname)s: %(message)s')
+syslogh = SysLogHandler(address='/dev/log')
 syslogh.setFormatter(syslogf)
 logger.addHandler(syslogh)
 
@@ -90,7 +90,7 @@ class HttpBlocklistProvider(BlocklistProvider):
                 logger.debug('Successfully fetched from url {}'.format(self.url))
                 return response.text
         except requests.exceptions.RequestException as e:
-            logger.debug(
+            logger.warn(
                 'RequestException while fetching from {}: {}'.format(self.url, e)
             )
             return None
