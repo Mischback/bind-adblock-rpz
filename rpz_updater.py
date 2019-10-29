@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
+# -*- utf-8 -*-
 
 # Python imports
 import logging
 from logging.handlers import SysLogHandler
 import os
-import requests
 import sys
 import yaml
+
+# app imports
+from bind_adblock.provider import HttpBlocklistProvider
 
 # ### Basic logging setup ###
 # This sets up a logger attached to syslog and provides a very basic mean of
@@ -14,7 +17,7 @@ import yaml
 # This logger will get replaced by a user provided logging configuration, that
 # is specified in a configuration file. Alternatively, logging is disabled by
 # attaching a NullLogger handler.
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('')
 # logger.setLevel(logging.WARNING)
 logger.setLevel(logging.DEBUG)
 syslogf = logging.Formatter(fmt='rpz-updater.py: %(levelname)s: %(message)s')
@@ -27,73 +30,6 @@ parent_dir = os.path.dirname(os.path.realpath(__file__))
 default_conf_file = os.path.join(parent_dir, 'config.yml')
 
 
-class BlocklistProviderException(Exception):
-    pass
-
-class BlocklistProviderExceptionNotImplemented(BlocklistProviderException):
-    pass
-
-class BlocklistProvider(object):
-
-    def __init__(self):
-        """Creates an instance of BlocklistProvider.
-
-        Upon object creation, the list is fetched and processed to provide
-        just a list of domain names."""
-
-        self.blocklist = self.convert(self.fetch())
-
-    def convert(self, raw):
-        """This method converts a blocklist into a list of domains."""
-
-        raise BlocklistProviderException(
-            'This method has to be implemented!'
-        )
-
-    def fetch(self):
-        """This method fetches a blocklist."""
-
-        raise BlocklistProviderException(
-            'This method has to be implemented!'
-        )
-
-    def get_blocklist(self):
-        """This method returns the converted blocklist."""
-
-        return self.blocklist
-
-class HttpBlocklistProvider(BlocklistProvider):
-
-    def __init__(self, url):
-        logger.debug(
-            'Creating HttpBlocklistProvider for url {}'.format(self.url)
-        )
-
-        # store the URL in the object
-        self.url = url
-
-        # call parent constructor
-        super().__init__()
-
-    def fetch(self):
-
-        headers = {
-            'User-Agent': 'bind-adblock-rpz'
-        }
-
-        try:
-            logger.debug('Trying to fetch {}'.format(self.url))
-            # TODO: Make timeout configurable!
-            response = requests.get(self.url, headers=headers, timeout=10)
-
-            if response.status_code == 200:
-                logger.debug('Successfully fetched from url {}'.format(self.url))
-                return response.text
-        except requests.exceptions.RequestException as e:
-            logger.warn(
-                'RequestException while fetching from {}: {}'.format(self.url, e)
-            )
-            return None
 
 def load_and_check_config(conf_file):
     """Loads the configuration from a yaml file and checks, if the minimal
