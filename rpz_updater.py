@@ -11,25 +11,29 @@ import yaml
 # app imports
 from bind_adblock.provider import HttpBlocklistProvider
 
-# ### Basic logging setup ###
-# This sets up a logger attached to syslog and provides a very basic mean of
-# logging.
-# This logger will get replaced by a user provided logging configuration, that
-# is specified in a configuration file. Alternatively, logging is disabled by
-# attaching a NullLogger handler.
-logger = logging.getLogger('')
-# logger.setLevel(logging.WARNING)
-logger.setLevel(logging.DEBUG)
-syslogf = logging.Formatter(fmt='rpz-updater.py: %(levelname)s: %(message)s')
-syslogh = SysLogHandler(address='/dev/log')
-syslogh.setFormatter(syslogf)
-logger.addHandler(syslogh)
-
 # assume a default location and filename for configuration
 parent_dir = os.path.dirname(os.path.realpath(__file__))
 default_conf_file = os.path.join(parent_dir, 'config.yml')
 
+def setup_logging_default():
+    """Provides a default configuration for logging, that is used during the
+    first stage of the script, specifically before the config file could be
+    read and user-specified logging is set up.
 
+    This logger is attached to syslog and provides a very basic mean of
+    logging. It will only handle messages of WARNING and above.
+
+    This logger will be replaced by any user defined logging configuration."""
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.WARNING)
+    syslogf = logging.Formatter(fmt='rpz-updater.py: %(levelname)s: %(message)s')
+    syslogh = SysLogHandler(address='/dev/log')
+    syslogh.setLevel(logging.WARNING)
+    syslogh.setFormatter(syslogf)
+    logger.addHandler(syslogh)
+
+    return logger
 
 def load_and_check_config(conf_file):
     """Loads the configuration from a yaml file and checks, if the minimal
@@ -44,9 +48,8 @@ def load_and_check_config(conf_file):
 
     return config
 
-
 if __name__ == '__main__':
-    logger.debug('rpz-updater.py started')
+    logger = setup_logging_default()
 
     conf_file=default_conf_file # TODO: Make the conf-file configurable by command line
     configuration = load_and_check_config(conf_file)
