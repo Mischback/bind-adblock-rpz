@@ -35,7 +35,7 @@ def setup_logging_default():
 
     return logger
 
-def load_and_check_config(conf_file):
+def load_and_check_config(conf_file, logger=logging.getLogger(__name__)):
     """Loads the configuration from a yaml file and checks, if the minimal
     required values are included."""
 
@@ -48,7 +48,12 @@ def load_and_check_config(conf_file):
 
     return config
 
-if __name__ == '__main__':
+def main():
+    """Provides the main logic.
+
+    This is put into its own function to ease future test coverage."""
+
+    # setup a default logger
     logger = setup_logging_default()
 
     conf_file=default_conf_file # TODO: Make the conf-file configurable by command line
@@ -57,4 +62,9 @@ if __name__ == '__main__':
         logger.error('Could not load configuration. Exiting now!')
         sys.exit(1)
 
+    # this is just for debugging
     foo = HttpBlocklistProvider('http://mischback.de')
+
+if __name__ == '__main__':
+    # Let there be magic...
+    main()
