@@ -15,6 +15,7 @@ from bind_adblock.provider import HttpBlocklistProvider
 class BindAdblockError(Exception):
     """App specific base class for all errors."""
 
+
 class ConfigFileNotFoundError(BindAdblockError):
 
     def __init__(self, message, files_not_found, *args):
@@ -27,6 +28,7 @@ class ConfigFileNotFoundError(BindAdblockError):
 
         # call the base class constructor with all parameters
         super().__init__(message, files_not_found, *args)
+
 
 def load_and_check_config(config_file, logger=logging.getLogger(__name__)):
     """Loads the configuration from a yaml file and checks, if the minimal
@@ -46,7 +48,7 @@ def load_and_check_config(config_file, logger=logging.getLogger(__name__)):
 
         files_not_found = [config_file]
 
-        # look for the file in script's parent directory and assume, that 
+        # look for the file in script's parent directory and assume, that
         # config_file is just the filename
         config_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
@@ -68,6 +70,7 @@ def load_and_check_config(config_file, logger=logging.getLogger(__name__)):
 
     return config
 
+
 def setup_logging_default():
     """Provides a default configuration for logging, that is used during the
     first stage of the script, specifically before the config file could be
@@ -88,6 +91,7 @@ def setup_logging_default():
 
     return logger
 
+
 def main():
     """Provides the main logic.
 
@@ -106,6 +110,7 @@ def main():
 
     # this is just for debugging
     foo = HttpBlocklistProvider('http://mischback.de')
+
 
 if __name__ == '__main__':
     # Let there be magic...
