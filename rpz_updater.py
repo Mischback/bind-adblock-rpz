@@ -11,9 +11,62 @@ import yaml
 # app imports
 from bind_adblock.provider import HttpBlocklistProvider
 
-# assume a default location and filename for configuration
-parent_dir = os.path.dirname(os.path.realpath(__file__))
-default_conf_file = os.path.join(parent_dir, 'config.yml')
+
+class BindAdblockError(Exception):
+    """App specific base class for all errors."""
+
+class ConfigFileNotFoundError(BindAdblockError):
+
+    def __init__(self, message, files_not_found, *args):
+        """Just overwriting the constructor to provide a custom error
+        variable (files_not_found)."""
+
+        # extract the parameters for this error
+        self.message = message
+        self.files_not_found = files_not_found
+
+        # call the base class constructor with all parameters
+        super().__init__(message, files_not_found, *args)
+
+def load_and_check_config(config_file, logger=logging.getLogger(__name__)):
+    """Loads the configuration from a yaml file and checks, if the minimal
+    required values are included."""
+
+    # no config file specified, assume a default location
+    if config_file is None:
+        config_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'config.yml'
+        )
+
+    try:
+        config = yaml.safe_load(open(config_file))
+    except FileNotFoundError as e:
+        logger.debug('Specified configuration file not found: {}'.format(e))
+
+        files_not_found = [config_file]
+
+        # look for the file in script's parent directory and assume, that 
+        # config_file is just the filename
+        config_file = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            config_file
+        )
+        try:
+            config = yaml.safe_load(open(config_file))
+        except FileNotFoundError as e:
+            logger.debug('Specified configuration file not found: {}'.format(e))
+
+            files_not_found.append(config_file)
+
+            raise ConfigFileNotFoundError(
+                'Could not find configuration file!',
+                files_not_found
+            )
+
+    # TODO: Insert checks for required values here!
+
+    return config
 
 def setup_logging_default():
     """Provides a default configuration for logging, that is used during the
@@ -35,19 +88,6 @@ def setup_logging_default():
 
     return logger
 
-def load_and_check_config(conf_file, logger=logging.getLogger(__name__)):
-    """Loads the configuration from a yaml file and checks, if the minimal
-    required values are included."""
-
-    try:
-        config = yaml.safe_load(open(conf_file))
-    except FileNotFoundError as e:
-        logger.debug('Specified configuration file not found: {}'.format(e))
-        config = None
-    # TODO: Insert checks for required values here!
-
-    return config
-
 def main():
     """Provides the main logic.
 
@@ -56,10 +96,12 @@ def main():
     # setup a default logger
     logger = setup_logging_default()
 
-    conf_file=default_conf_file # TODO: Make the conf-file configurable by command line
-    configuration = load_and_check_config(conf_file)
-    if configuration is None:
+    try:
+        config = load_and_check_config(None)
+    except ConfigFileNotFoundError as e:
         logger.error('Could not load configuration. Exiting now!')
+        for f in e.files_not_found:
+            logger.error('  - tried {} and got FileNotFoundError'.format(f))
         sys.exit(1)
 
     # this is just for debugging
