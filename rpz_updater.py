@@ -2,6 +2,7 @@
 # -*- utf-8 -*-
 
 # Python imports
+import argparse
 import logging
 from logging.handlers import SysLogHandler
 import os
@@ -92,7 +93,27 @@ def setup_logging_default():
     return logger
 
 
-def main():
+def parse_cmdline_arguments():
+    """Parses command line arguments.
+
+    This function initialises the argument parser and is responsible for the
+    actual parsing of command line arguments."""
+
+    # setup the argument parser
+    parser = argparse.ArgumentParser(description='Creates and updates BIND9 \
+                compatible RPZ zonefile for ad blocking!')
+    parser.add_argument(
+        '-c', '--config',
+        help='Specify a config file',
+        dest='config_file',
+        action='store',
+        default=None
+    )
+
+    return parser.parse_args()
+
+
+def main(cmdline_args):
     """Provides the main logic.
 
     This is put into its own function to ease future test coverage."""
@@ -113,5 +134,6 @@ def main():
 
 
 if __name__ == '__main__':
+
     # Let there be magic...
-    main()
+    main(parse_cmdline_arguments())
